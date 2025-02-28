@@ -1,0 +1,65 @@
+{
+    "sap.app": {
+      "id": "ui5.flowdesigner",
+      "type": "application",
+      "title": "UI5 Flow Designer",
+      "applicationVersion": {
+        "version": "1.0.0"
+      }
+    },
+    "sap.ui": {
+      "technology": "UI5",
+      "deviceTypes": {
+        "desktop": true,
+        "tablet": true,
+        "phone": true
+      }
+    },
+    "sap.ui5": {
+      "rootView": {
+        "viewName": "ui5.flowdesigner.view.Paths",
+        "type": "XML",
+        "async": true,
+        "id": "rootView"
+      },
+      "dependencies": {
+        "minUI5Version": "1.76.0",
+        "libs": {
+          "sap.ui.core": {},
+          "sap.m": {},
+          "sap.ui.layout": {}
+        }
+      },
+      "models": {},
+      "resources": {
+        "css": [
+          {
+            "uri": "css/styles.css"
+          }
+        ]
+      },
+      "routing": {
+        "config": {
+          "routerClass": "sap.m.routing.Router",
+          "viewType": "XML",
+          "viewPath": "ui5.flowdesigner.view",
+          "controlId": "app",
+          "controlAggregation": "pages",
+          "async": true
+        },
+        "routes": [
+          {
+            "pattern": "",
+            "name": "paths",
+            "target": "paths"
+          }
+        ],
+        "targets": {
+          "paths": {
+            "viewName": "Paths",
+            "viewLevel": 1
+          }
+        }
+      }
+    }
+  }

@@ -1,0 +1,37 @@
+<mvc:View
+    controllerName="ui5.flowdesigner.controller.Paths"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:custom="ui5.flowdesigner.control"
+    displayBlock="true"
+    xmlns:core="sap.ui.core"> <!-- Add the core namespace -->
+    
+    <App id="app">
+        <pages>
+            <Page title="UI5 Flow Designer with jsPlumb">
+                <customHeader>
+                    <Bar>
+                        <contentLeft>
+                            <Title text="Flow Designer"/>
+                        </contentLeft>
+                        <contentRight>
+                            <Text
+                                id="nodeCountText"
+                                text="Node count: {viewModel>/nodeCount}"
+                                class="nodeCountDisplay"/>
+                        </contentRight>
+                    </Bar>
+                </customHeader>
+                <content>
+                    <l:VerticalLayout width="100%" class="sapUiContentPadding">
+                        <custom:Paths id="flowDesigner" height="600px" width="100%"
+                            nodeAdded="onNodeAdded"
+                            connectionCreated="onConnectionCreated"
+                            connectionRemoved="onConnectionRemoved" />
+                    </l:VerticalLayout>
+                </content>
+            </Page>
+        </pages>
+    </App>
+</mvc:View>
