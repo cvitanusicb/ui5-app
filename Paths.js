@@ -13,7 +13,7 @@ sap.ui.define([
         metadata: {
             properties: {
                 width: { type: "string", defaultValue: "100%" },
-                height: { type: "string", defaultValue: "600px" }
+                height: { type: "string", defaultValue: "700px" }
             },
             events: {
                 nodeAdded: {
@@ -40,7 +40,7 @@ sap.ui.define([
             this._minScale = 0.2;
             this._maxScale = 15;
             this._nodePositions = {};
-            this._levelHeight = 150;
+            this._levelHeight = 170;
             this._horizontalSpacing = 200;
             this._translateX = 0;
             this._translateY = 0;
@@ -83,7 +83,7 @@ sap.ui.define([
                     strokeWidth: 2,
                     radius: 6
                 },
-                Connector: ["Bezier", { curviness: 50 }],
+                Connector: ["Straight", { curviness: 20 }],
                 HoverPaintStyle: { stroke: "#1e8151", strokeWidth: 3 },
                 ConnectionOverlays: [
                     ["Arrow", {
@@ -344,7 +344,7 @@ sap.ui.define([
         createNodesAndConnections: function(data) {
             var that = this;
         
-            this.clearBoard();
+            this.clearBoard(); // Clear the board before loading new data
         
             data.nodes.forEach(function(node) {
                 that.addNode(
@@ -355,17 +355,15 @@ sap.ui.define([
                 );
             });
         
-            this._pendingConnections = data.connections;
-        
             setTimeout(function() {
                 // Initial connections
-                that._pendingConnections.forEach(function(connection) {
+                data.connections.forEach(function(connection) {
                     try {
                         that.jsPlumb.connect({
                             source: connection.source,
                             target: connection.target,
                             anchors: ["Bottom", "Top"],
-                            connector: ["Bezier", { curviness: 50, stub: 30 }],
+                            connector: ["Straight"], // Ensure the connector is straight
                             paintStyle: { stroke: "blue", strokeWidth: 2 }
                         });
                     } catch (e) {
@@ -373,52 +371,9 @@ sap.ui.define([
                     }
                 });
         
-                setTimeout(function() {
-                    // Store connections
-                    var currentConnections = that.jsPlumb.getConnections().map(function(connection) {
-                        return {
-                            sourceId: connection.sourceId,
-                            targetId: connection.targetId,
-                            paintStyle: connection.getPaintStyle(),
-                            connector: connection.getConnector().type,
-                            anchors: [
-                                connection.endpoints[0].anchor.type,
-                                connection.endpoints[1].anchor.type
-                            ],
-                            label: connection.getLabel ? connection.getLabel() : ""
-                        };
-                    });
-        
-                    // Delete connections
-                    that.jsPlumb.deleteEveryConnection();
-        
-                    // Arrange nodes
-                    that.autoArrangeNodes();
-        
-                    setTimeout(function() {
-                        // Recreate connections
-                        currentConnections.forEach(function(conn) {
-                            try {
-                                var newConnection = that.jsPlumb.connect({
-                                    source: conn.sourceId,
-                                    target: conn.targetId,
-                                    anchors: [conn.anchors[0], conn.anchors[1]],
-                                    connector: ["Bezier", { curviness: 50, stub: 30 }],
-                                    paintStyle: conn.paintStyle || { stroke: "blue", strokeWidth: 2 }
-                                });
-                                if (conn.label) {
-                                    newConnection.setLabel(conn.label);
-                                }
-                            } catch (e) {
-                                console.error("Error recreating connection:", e);
-                            }
-                        });
-        
-                        that.fixEndpointRendering();
-                        that.jsPlumb.repaintEverything();
-                    }, 500);
-                }, 500);
-            }, 500);
+                that.fixEndpointRendering();
+                that.jsPlumb.repaintEverything();
+            }, 500); // Slight delay to ensure nodes are rendered before connecting
         },
 
         fixEndpointRendering: function() {
@@ -467,7 +422,7 @@ sap.ui.define([
                                 strokeWidth: 2
                             },
                             maxConnections: -1,
-                            connector: ["Bezier", { curviness: 50, stub: 30 }],
+                            connector: ["Straight", { curviness: 50, stub: 30 }],
                             zIndex: 10 // Ensure zIndex is set during endpoint creation
                         });
                     });
@@ -547,7 +502,7 @@ sap.ui.define([
                     endpoint: ["Dot", { radius: 6 }],
                     paintStyle: { fill: "#FF6666", stroke: "#FF4D4D", strokeWidth: 2 },
                     maxConnections: -1,
-                    connector: ["Bezier", { curviness: 50, stub: 30 }]
+                    connector: ["Straight"]  // Ensure the connector is straight
                 });
             }, 50);
         
@@ -633,7 +588,9 @@ sap.ui.define([
                     targetId: conn.targetId,
                     paintStyle: conn.getPaintStyle(),
                     hoverPaintStyle: conn.getHoverPaintStyle(),
-                    overlays: conn.getOverlays ? conn.getOverlays().map(overlay => overlay.getOptions()) : [],
+                    overlays: conn.getOverlays ? Object.values(conn.getOverlays()).map(overlay => {
+                        return overlay.getOptions ? overlay.getOptions() : overlay;
+                    }) : [],
                     anchors: [
                         conn.endpoints[0].anchor.type,
                         conn.endpoints[1].anchor.type
@@ -674,30 +631,30 @@ sap.ui.define([
             if (rootNodes.length === 0 && nodes.length > 0) {
                 rootNodes = [nodeMap[nodes[0].id]];
             }
-
+        
             // Function to recursively calculate total width
             function calculateTotalWidth(node) {
                 if (!node.children || node.children.length === 0) {
                     return node.width + NODE_SPACING_X;
                 }
-                
+        
                 let childrenWidth = 0;
                 node.children.forEach(child => {
                     childrenWidth += calculateTotalWidth(child);
                 });
-                
+        
                 return Math.max(node.width, childrenWidth) + NODE_SPACING_X;
             }
         
             // Function to recursively position nodes
             function positionNodes(node, startX, level) {
-                node.x = startX;
+                node.x = Math.max(startX, 0);  // Ensure x is not negative
                 node.y = START_Y + (level * NODE_SPACING_Y);
         
                 if (!node.children || node.children.length === 0) {
                     return;
                 }
-                
+        
                 let childrenWidth = 0;
                 node.children.forEach(child => {
                     childrenWidth += calculateTotalWidth(child);
@@ -727,12 +684,63 @@ sap.ui.define([
                 currentX += calculateTotalWidth(root);
             });
         
-            // Apply positions to DOM
+            // Function to check for overlapping nodes and adjust positions
+            function checkForOverlaps(nodeMap) {
+                const nodesArray = Object.values(nodeMap);
+                let hasOverlaps = false;
+        
+                nodesArray.forEach((nodeA, indexA) => {
+                    nodesArray.forEach((nodeB, indexB) => {
+                        if (indexA !== indexB) {
+                            if (isOverlapping(nodeA, nodeB)) {
+                                adjustPosition(nodeA, nodeB);
+                                hasOverlaps = true;
+                            }
+                        }
+                    });
+                });
+        
+                // If there were overlaps, check again
+                if (hasOverlaps) {
+                    checkForOverlaps(nodeMap);
+                }
+            }
+        
+            // Function to determine if two nodes are overlapping
+            function isOverlapping(nodeA, nodeB) {
+                return !(
+                    nodeA.x + nodeA.width < nodeB.x ||
+                    nodeA.x > nodeB.x + nodeB.width ||
+                    nodeA.y + nodeA.height < nodeB.y ||
+                    nodeA.y > nodeB.y + nodeB.height
+                );
+            }
+        
+            // Function to adjust positions of overlapping nodes
+            function adjustPosition(nodeA, nodeB) {
+                if (nodeA.x < nodeB.x) {
+                    nodeA.x -= NODE_SPACING_X;
+                    nodeB.x += NODE_SPACING_X;
+                } else {
+                    nodeA.x += NODE_SPACING_X;
+                    nodeB.x -= NODE_SPACING_X;
+                }
+        
+                if (nodeA.y < nodeB.y) {
+                    nodeA.y -= NODE_SPACING_Y;
+                    nodeB.y += NODE_SPACING_Y;
+                } else {
+                    nodeA.y += NODE_SPACING_Y;
+                    nodeB.y -= NODE_SPACING_Y;
+                }
+            }
+        
+            // Apply positions to DOM and check for overlaps
             Object.values(nodeMap).forEach(node => {
                 node.element.style.position = 'absolute';
                 node.element.style.left = node.x + 'px';
                 node.element.style.top = node.y + 'px';
-                
+        
                 // Save the node's position
                 that._nodePositions[node.id] = {
                     x: node.x,
@@ -740,11 +748,32 @@ sap.ui.define([
                 };
             });
         
+            // Check for overlapping nodes and adjust positions
+            checkForOverlaps(nodeMap);
+        
+            // Center the graph within the canvas
+            let minX = Math.min(...Object.values(nodeMap).map(node => node.x));
+            let minY = Math.min(...Object.values(nodeMap).map(node => node.y));
+        
+            let translateX = (canvas.offsetWidth - (Math.max(...Object.values(nodeMap).map(node => node.x + node.width)) - minX)) / 2 - minX;
+            let translateY = (canvas.offsetHeight - (Math.max(...Object.values(nodeMap).map(node => node.y + node.height)) - minY)) / 2 - minY;
+        
+            Object.values(nodeMap).forEach(node => {
+                node.element.style.left = (node.x + translateX) + 'px';
+                node.element.style.top = (node.y + translateY) + 'px';
+        
+                // Update the node's position
+                that._nodePositions[node.id] = {
+                    x: node.x + translateX,
+                    y: node.y + translateY
+                };
+            });
+        
             // Recreate connections after DOM update
             setTimeout(() => {
                 // Delete all existing connections
                 that.jsPlumb.deleteEveryConnection();
-                
+        
                 // Recreate connections based on stored data
                 connectionData.forEach(conn => {
                     try {
@@ -754,7 +783,7 @@ sap.ui.define([
                             anchors: conn.anchors,
                             paintStyle: conn.paintStyle,
                             hoverPaintStyle: conn.hoverPaintStyle,
-                            connector: ["Bezier", { curviness: 50, stub: 30 }]
+                            connector: ["Straight", { curviness: 50, stub: 30 }]
                         });
                     } catch (e) {
                         console.error("Error recreating connection:", e);
@@ -768,14 +797,14 @@ sap.ui.define([
                         paintStyle: { fill: "#3498db", radius: 5 },
                         anchor: "Bottom"
                     });
-                    
+        
                     that.jsPlumb.makeTarget(node, {
                         endpoint: "Dot",
                         paintStyle: { fill: "#e74c3c", radius: 5 },
                         anchor: "Top"
                     });
                 });
-                
+        
                 // Force redraw of all elements
                 that.jsPlumb.repaintEverything();
                 console.log("Auto-arrange completed with", connectionData.length, "connections restored");

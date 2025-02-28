@@ -1,249 +1,153 @@
-/* styles.css */
-
-/* General layout */
 .flowDesignerContainer {
     position: relative;
-    width: 100%;
-    height: 100%;
     overflow: hidden;
 }
 
-/* The main working area for the nodes */
 .playgroundContainer {
     width: 100%;
     height: 100%;
-    overflow: auto;
     position: relative;
 }
 
-/* Styling for the canvas */
 .flowCanvas {
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    transform-origin: top left;
 }
 
-/* Change the style for panning */
-.flowCanvas.panning {
-    cursor: grab;
-}
-
-/* Holds the controls (toolbar and zoom) */
-.controlsWrapper {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding: 10px;
-    z-index: 1000;
-}
-
-/* Style for the toolbar */
-.flowToolbar {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Zoom controls style */
-.zoomControlsContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.zoomButton {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 5px;
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-
-.zoomButton:hover {
-    background-color: #2980b9;
-}
-
-/* Styling for the "hand" button */
-.handButton {
-    font-style: italic;
-}
-
-.handButton.active {
-    background-color: #e74c3c;
-}
-
-/* Basic styling for nodes */
 .flowNode {
     position: absolute;
-    width: 100px;
-    height: 50px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
+    width: 120px;
+    height: 60px;
+    background-color: #ffffff;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
-    line-height: 50px;
+    padding: 10px;
+    box-sizing: border-box;
     cursor: move;
 }
 
-.flowNode:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-color: #5DADE2;
-}
-
-/* Styles for connection labels */
-.connectionLabel {
-    background-color: white;
-    padding: 2px 4px;
-    border-radius: 3px;
-    border: 1px solid #ddd;
-    font-size: 12px;
-    position: relative;
-    /* Prevent label from overlapping with the remove button */
-    margin-right: 20px; /* Add space to the right of the label */
-}
-
-/* Styling for the remove connection button */
-.connection-remove-button {
-    background-color: #ff4d4d;
-    color: white;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    line-height: 16px;
-    text-align: center;
+.flowNode .nodeContents {
     font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.8;
+    color: #333333;
+    line-height: 40px; /* Vertically center the text */
 }
 
-.custom-connection-overlay {
-    position: relative; /* Required for layout within the overlay */
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Center items vertically */
-    justify-content: center; /* Distribute space evenly */
-    padding: 2px 5px;
-    border-radius: 5px;
-    z-index: 100; /* Ensure the overlay is on top */
-}
-
-.connection-remove-button:hover {
-    transform: scale(1.2);
-    background-color: #ff0000;
-    opacity: 1;
-}
-
-.jtk-endpoint {
-    z-index: 20; /* Ensure endpoints are above connectors */
-}
-
-.jtk-overlay {
-    z-index: 30;
-}
-
-.custom-connection-overlay {
-    position: relative; /* Required for layout within the overlay */
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Center items vertically */
-    justify-content: center; /* Distribute space evenly */
-    padding: 2px 5px;
-    border-radius: 5px;
-    z-index: 100; /* Ensure the overlay is on top */
-}
-
-/* New styles for Clear button position */
-.clearButtonContainer {
-    margin-top: 10px; /* Adjust spacing between buttons */
-    text-align: center;
-}
-
-.clearButtonContainer button {
-    background-color: blue; /* Match zoom button background */
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 5px;
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-
-.clearButtonContainer button:hover {
-    background-color: #2980b9;
-}
-
-.clearButton {
-    font-style: italic; /* Add italic styling */
-    background-color: #eb1e07; /* Use red color */
-    /* color: white; */
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 5px;
-    display: block;
-    width: 100%;
-    text-align: center;
-    transition: background-color 0.2s ease; /* Smooth hover effect */
-}
-
-.clearButton:hover {
-    background-color: #c0392b; /* Darker shade of red on hover */
-}
-
-.flowToolbar .sapMBtn {
-    margin-right: 5px;
-    margin-bottom: 5px;
-}
-
-/* Node delete button styling */
 .node-remove-button {
     position: absolute;
     top: -10px;
     right: -10px;
     width: 20px;
     height: 20px;
-    background-color: #ff4d4d;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: #e74c3c;
+    color: #ffffff;
     font-size: 14px;
+    text-align: center;
+    line-height: 20px;
+    border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.flowNode:hover .node-remove-button {
-    opacity: 1;
 }
 
 .node-remove-button:hover {
-    background-color: #ff0000;
-    transform: scale(1.1);
+    background-color: #c0392b;
 }
 
-.nodeContents {
-    width: 100%;
-    height: 100%;
+.custom-connection-overlay {
+    position: absolute;
+}
+
+.connection-remove-button {
+    width: 18px;
+    height: 18px;
+    background-color: #e74c3c;
+    color: #ffffff;
+    font-size: 14px;
+    text-align: center;
+    line-height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.connection-remove-button:hover {
+    background-color: #c0392b;
+}
+
+.controlsWrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.flowToolbar {
+    display: flex;
+    gap: 10px;
+}
+
+.clearButton {
+    background-color: #ff4d4d;
+    width: 30px;
+    height: 30px;
+    background-color: #3498db;
+    color: #ffffff;
+    font-size: 18px;
+    text-align: center;
+    line-height: 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.clearButton:hover {
+    background-color: #2980b9;
+}
+
+.zoomControlsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+    align-items: flex-end;
+}
+
+.zoomButton {
+    width: 50px;
+    height: 30px;
+    background-color: #3498db;
+    color: #ffffff;
+    font-size: 12px;
+    text-align: center;
+    line-height: 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.zoomButton:hover {
+    background-color: #2980b9;
+}
+
+.handButton {
+    width: 50px;
+    height: 30px;
+    background-color: #3498db;
+    color: #ffffff;
+    font-size: 12px;
+    text-align: center;
+    line-height: 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.handButton:hover {
+    background-color: #2980b9;
 }
