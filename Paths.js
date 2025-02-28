@@ -540,6 +540,7 @@ sap.ui.define([
             var levelMap = {}; // Store nodes by level (y-position)
             var rootNodes = []; // Nodes with no incoming connections (level 0)
             var that = this;
+            const START_Y = 50;
             
             // Build the connection map
             var connectionMap = {};
@@ -577,34 +578,36 @@ sap.ui.define([
                     rootNodes.push(nodeId);
                 }
             }
-        
-            // Function to recursively position nodes in a tree layout
-            function positionNodes(nodeIds, level) {
-                if (!nodeIds || nodeIds.length === 0) {
-                    return;
-                }
-        
-                if (!levelMap[level]) {
-                    levelMap[level] = [];
-                }
-        
-                nodeIds.forEach(nodeId => {
-                    levelMap[level].push(nodeId);
-        
-                    // Position the node
-                    let node = document.getElementById(nodeId);
-                    if (node) {
-                        let y = level * that._levelHeight + 50; // Vertical spacing
-                        node.style.top = y + "px";
-                    }
-        
-                    // Recursively position child nodes
-                    if (connectionMap[nodeId]) {
-                        positionNodes(connectionMap[nodeId], level + 1);
-                    }
+
+            // Function to recursively position nodes
+            function positionNodes(node, startX, level) {
+                const NODE_SPACING_Y = 100;
+                node.x = startX;
+                node.y = START_Y + (level * NODE_SPACING_Y);
+
+                let childrenWidth = 0;
+                node.children.forEach(child => {
+                    childrenWidth += calculateTotalWidth(child);
+                });
+
+                // Center children under the parent node
+                let childStartX = startX + (node.width - childrenWidth) / 2;
+                node.children.forEach(child => {
+                    positionNodes(child, childStartX, level + 1);
+                    childStartX += calculateTotalWidth(child);
                 });
             }
-        
+
+            // Function to recursively calculate total width
+            function calculateTotalWidth(node) {
+                let childrenWidth = 0;
+                node.children.forEach(child => {
+                    childrenWidth += calculateTotalWidth(child);
+                });
+
+                return Math.max(node.width, childrenWidth) + NODE_SPACING_X;
+            }
+
             // Start positioning from the root nodes
             positionNodes(rootNodes, 0);
         
@@ -884,6 +887,11 @@ sap.ui.define([
                 return;
             }
         
+            // Layout parameters
+            const NODE_SPACING_X = 120;
+            const NODE_SPACING_Y = 100;
+            const START_Y = 50;
+        
             // Store complete connection data
             var connectionData = this.jsPlumb.getAllConnections().map(function(conn) {
                 return {
@@ -928,37 +936,49 @@ sap.ui.define([
             // Find root nodes (nodes with no parents)
             rootNodes = Object.values(nodeMap).filter(node => !node.parent);
         
-            // Layout parameters
-            const NODE_SPACING_X = 120;
-            const NODE_SPACING_Y = 100;
-            const START_Y = 50;
+            // Function to recursively calculate total width
+            function calculateTotalWidth(node) {
+                let childrenWidth = 0;
+                if (node.children) {
+                    node.children.forEach(child => {
+                        childrenWidth += calculateTotalWidth(child);
+                    });
+                }
+                return Math.max(node.width, childrenWidth) + NODE_SPACING_X;
+            }
         
-            // Calculate total width for centering
-            function calculateLayout(node, startX, level) {
+            // Function to recursively position nodes
+            function positionNodes(node, startX, level) {
                 node.x = startX;
                 node.y = START_Y + (level * NODE_SPACING_Y);
         
                 let childrenWidth = 0;
-                node.children.forEach(child => {
-                    childrenWidth += calculateLayout(child, startX + childrenWidth, level + 1);
-                });
+                if (node.children && Array.isArray(node.children)) {
+                    node.children.forEach(child => {
+                        childrenWidth += calculateTotalWidth(child);
+                    });
         
-                const nodeWidth = Math.max(node.width, childrenWidth);
-                return nodeWidth + NODE_SPACING_X;
+                    // Center children under the parent node
+                    let childStartX = startX + (node.width - childrenWidth) / 2;
+                    node.children.forEach(child => {
+                        positionNodes(child, childStartX, level + 1);
+                        childStartX += calculateTotalWidth(child);
+                    });
+                }
             }
         
-            // Centering logic
+            // Calculate total width for centering
             let totalWidth = 0;
             rootNodes.forEach(root => {
-                totalWidth += calculateLayout(root, 0, 0);
+                totalWidth += calculateTotalWidth(root);
             });
         
             // Calculate starting position to center nodes
-            let centerX = (canvas.offsetWidth - totalWidth) / 2;
+            let centerX = Math.max((canvas.offsetWidth - totalWidth) / 2, 0);
         
             // Position root nodes
             rootNodes.forEach(root => {
-                calculateLayout(root, centerX, 0);
+                positionNodes(root, centerX, 0);
             });
         
             // Apply positions to DOM
@@ -995,20 +1015,6 @@ sap.ui.define([
                 that.jsPlumb.repaintEverything();
                 console.log("Auto-arrange completed with", connectionData.length, "connections restored");
             }, 300);
-        
-            // Reinitialize endpoints on all nodes
-            nodes.forEach(node => {
-                that.jsPlumb.makeSource(node, {
-                    endpoint: "Dot",
-                    paintStyle: { fill: "#3498db", radius: 5 },
-                    anchor: "Bottom"
-                });
-                that.jsPlumb.makeTarget(node, {
-                    endpoint: "Dot",
-                    paintStyle: { fill: "#e74c3c", radius: 5 },
-                    anchor: "Top"
-                });
-            });
         },
 
         // Add method to manually delete a connection
